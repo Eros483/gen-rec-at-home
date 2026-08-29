@@ -23,8 +23,7 @@ def render_event(e, item, verbosity):
 def verbalize(events, catalog, n_events=10, verbosity="full", drop_low_signal=False,
               fit_tokens=None, max_len=1024):
     """events: chronological [{"i","r","t"}]; catalog: item_id -> {title, genres}; returns prompt text."""
-    assert events, "user has no events"
-    first_month = datetime.fromtimestamp(events[0]["t"], tz=timezone.utc).strftime("%Y-%m")
+    first_month = datetime.fromtimestamp(events[0]["t"], tz=timezone.utc).strftime("%Y-%m") if events else "unknown"
     tenure = f"tenure {len(events)} ratings since {first_month}."
 
     pool = [e for e in events if not drop_low_signal or e["r"] > 2]
