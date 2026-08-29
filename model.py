@@ -81,8 +81,12 @@ class GenRecModel(nn.Module):
     @classmethod
     def from_ckpt(cls, out_dir, base=BASE, trainable=False):
         backbone = load_backbone(base, trainable=False)
-        backbone = PeftModel.from_pretrained(backbone, Path(out_dir) / "adapter",
-                                             is_trainable=trainable)
+        if trainable:  # resume: prepare grads first, then load adapter as trainable LoRA
+            prepare_model_for_kbit_training(backbone)
+            backbone = PeftModel.from_pretrained(backbone, Path(out_dir) / "adapter",
+                                                 is_trainable=True)
+        else:
+            backbone = PeftModel.from_pretrained(backbone, Path(out_dir) / "adapter")
         model = cls(backbone, n_items=head_dim_from_ckpt(out_dir))
         sd = torch.load(Path(out_dir) / "head.pt", map_location="cpu", weights_only=True)
         model.head.load_state_dict(sd["head"])
