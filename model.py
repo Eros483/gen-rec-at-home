@@ -30,7 +30,7 @@ def load_backbone(base=BASE, trainable=True):
                              bnb_4bit_compute_dtype=torch.bfloat16,
                              bnb_4bit_use_double_quant=True)
     model = AutoModelForCausalLM.from_pretrained(base, quantization_config=bnb,
-                                                 device_map="auto")
+                                                 device_map={"": 0})  # ponytail: single GPU — device_map="auto" sharding broke accelerate hooks on 2xT4
     model.config.use_cache = False
     if trainable:
         prepare_model_for_kbit_training(model)
