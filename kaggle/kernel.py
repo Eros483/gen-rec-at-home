@@ -27,6 +27,7 @@ def run(cmd):
         sys.exit(f"FAILED: {' '.join(cmd)}")
 
 
+run([sys.executable, "-m", "pip", "install", "-q", "peft", "bitsandbytes", "accelerate"])
 run([sys.executable, "data_prep.py"])
 # preflight smoke (~15 min incl. Qwen download) — aborts the kernel before wasting a full run if something is broken
 run([sys.executable, "train_phase2.py", "--max-examples", "400", "--epochs", "1", "--batch", "2",
