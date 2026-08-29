@@ -92,7 +92,7 @@ def main():
     params = [p for p in model.backbone.parameters() if p.requires_grad] + list(model.head.parameters())
     opt = PagedAdamW8bit(params, lr=args.lr)
     steps_per_epoch = (len(examples) + args.batch - 1) // args.batch
-    total_steps = steps_per_epoch * args.epochs
+    total_steps = ((steps_per_epoch + args.accum - 1) // args.accum) * args.epochs  # optimizer steps, not micro-batches
     sched = get_cosine_schedule_with_warmup(opt, int(0.03 * total_steps), total_steps)
     print(f"total optimizer steps={total_steps} (effective batch={args.batch * args.accum})")
 
