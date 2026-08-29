@@ -38,16 +38,17 @@ def evaluate(score_fn, users, split="test"):
         idx = u[idx_key]
         if idx is None:
             continue
-        hist = [e["i"] for e in u["events"][:idx]]
+        hist = u["events"][:idx]
         target = u["events"][idx]["i"]
-        rows.append((hist, target, u["events"][:idx]))
+        rows.append((hist, target))
     assert rows, f"no users with a {split} event"
 
     mrrs, ndcgs, hrs = [], [], []
-    for hist, target, _ in rows:
-        scores = score_fn(hist)
+    for hist, target in rows:
+        hist_ids = [e["i"] for e in hist]
+        scores = score_fn(hist_ids, hist)
         seen_mask = np.zeros(scores.shape[0], dtype=bool)
-        seen_mask[np.asarray(hist, dtype=int)] = True
+        seen_mask[np.asarray(hist_ids, dtype=int)] = True
         m, n, h = rank_metrics(scores, target, seen_mask)
         mrrs.append(m); ndcgs.append(n); hrs.append(h)
     return {"split": split, "n_users": len(rows),
@@ -64,7 +65,7 @@ def popularity_scorer(data_dir, n_items):
     pop = np.zeros(n_items)
     for item, c in counts.items():
         pop[item] = c
-    return lambda hist: pop
+    return lambda hist_ids, hist_events: pop
 
 
 if __name__ == "__main__":

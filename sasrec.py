@@ -104,7 +104,7 @@ def train(args):
             opt.zero_grad(); loss.backward(); opt.step()
             tot += loss.item(); nb += 1
         model.eval()
-        m = eval_lib.evaluate(lambda hist: model.scores_for_histories([hist], n_items, device)[0],
+        m = eval_lib.evaluate(lambda hist_ids, hist_events: model.scores_for_histories([hist_ids], n_items, device)[0],
                               val_rows_to_users(val_rows), "val")
         print(f"epoch {epoch}: train_loss={tot / nb:.4f} val_MRR={m['MRR']:.4f} val_NDCG@10={m['NDCG@10']:.4f} val_HR@10={m['HR@10']:.4f}")
         if m["NDCG@10"] > best_ndcg:
@@ -124,7 +124,7 @@ def score_fn_from_ckpt(ckpt, data_dir, device=None):
     model.load_state_dict(torch.load(ckpt, map_location="cpu", weights_only=True))
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device).eval()
-    return lambda hist: model.scores_for_histories([hist], n_items, device)[0]
+    return lambda hist_ids, hist_events: model.scores_for_histories([hist_ids], n_items, device)[0]
 
 
 if __name__ == "__main__":
